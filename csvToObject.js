@@ -1,35 +1,39 @@
 const fs = require("fs");
 const csv = require("csv-parser");
 
-function toSentenceCase(str) {
-  if (typeof str !== "string") {
-    throw new Error("Input must be a string.");
-  }
-
-  // Convert the first letter to uppercase and the rest to lowercase
-  return str.replace(/^(.)|\s+(.)/g, match => match.toUpperCase());
-}
+const toSentenceCase = str =>
+  str.replace(/(^|\.\s+|\?\s+|\!\s+)(.)/g, match => match.toUpperCase());
 
 // Read the CSV file
 const valueArray = [];
 // ...
 
 fs
-  .createReadStream("/Users/anilantony/Downloads/employer.csv")
+  .createReadStream(
+    "/Users/anilantony/Documents/Projects/Scripts/Scripts/finbudcity.csv"
+  )
   .pipe(csv())
   .on("data", row => {
-    // console.log(row['Company Name']);
+    console.log(row);
     const obj = {
-      hdfcCode: row.EMPLOYERID.toLowerCase(),
-      name: row.EMPLOYERNAME
+      id: row.CityName.toLowerCase(),
+      names: [toSentenceCase(row.CityName)],
+      county: "India",
+      state: row.BranchState,
+      lendors: [
+        {
+          name: "hdfc",
+          cityCode: row.CityCode.replace(/,/g, ""),
+          dsaCode: row.DSACode.replace(/,/g, ""),
+          stateCode: row.StateID
+        }
+      ]
     };
-
-    // Add "hdfc" key-value pairs to the "lendors" array
-    // obj.lendors = [{ hdfc: row.Id }];
     valueArray.push(obj);
     // if(typeof(row['Company Name']) === 'string') valueArray.push(row['Company Name'].toString());
   })
   .on("end", () => {
+    console.log(valueArray);
     // const jsData = valueArray
     // .map(obj => {
     //   const lendorsArray = obj.lendors.map(lendor => {
@@ -38,9 +42,7 @@ fs
     //       .join(', ');
     //     return `{ ${lendorProperties} }`;
     //   }).join(', ');
-
     //   // delete obj.lendors; // Removing the lendors property to replace it with formatted lendorsArray
-
     //   // const properties = Object.entries(obj)
     //   //   .map(([key, value]) => {
     //   //     if (key === 'lendors') {
@@ -50,19 +52,15 @@ fs
     //   //     }
     //   //   })
     //     .join(', ');
-
     //   return `{ ${properties} }`;
     // })
     // .join(',\n');
-
     // console.log(jsData)
-
     // Create final JavaScript code
     // const jsCode = `[${jsData}]`;
-
     // // Write JS code to a file
     const jsonData = JSON.stringify(valueArray);
-    fs.writeFile("hdfc.js", jsonData, "utf8", err => {
+    fs.writeFile("hdfcCities.js", jsonData, "utf8", err => {
       if (err) {
         console.error("Error writing file:", err);
       } else {
